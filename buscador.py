@@ -47,7 +47,7 @@ st.title("Buscador de Google Scholar")
 query = st.text_input("Ingrese la consulta de búsqueda:")
 
 # Campo de entrada para la cantidad de resultados
-max_results = st.number_input("Cantidad de resultados a guardar:", min_value=1, max_value=100, value=10, step=1)
+max_results = st.number_input("Cantidad de resultados a guardar:", min_value=1, max_value=100000, value=10, step=1)
 
 # Botón para ejecutar la búsqueda y descargar resultados
 if st.button("Buscar y Descargar"):
