@@ -2,11 +2,12 @@ import streamlit as st
 import openpyxl
 from scholarly import scholarly
 from fake_useragent import UserAgent
+from io import BytesIO
 
 # Configurar fallback para evitar el error de lista vacía
 ua = UserAgent(fallback="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
 
-def search_and_save(query, filename):
+def search_and_save(query):
     # Crear y configurar el libro de Excel
     wb = openpyxl.Workbook()
     ws = wb.active
@@ -30,12 +31,14 @@ def search_and_save(query, filename):
             # Agregar la información en la hoja de Excel
             ws.append([title, authors, year, journal, eprint_url])
 
-        # Guardar el archivo Excel
-        wb.save(filename)
-        return f"Resultados guardados en {filename}"
+        # Guardar el archivo Excel en memoria
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)
+        return output
 
     except Exception as e:
-        return f"Ocurrió un error al realizar la búsqueda: {e}"
+        return str(e)
 
 # Interfaz de usuario con Streamlit
 st.title("Buscador de Google Scholar")
@@ -43,13 +46,20 @@ st.title("Buscador de Google Scholar")
 # Campo de entrada para la consulta de búsqueda
 query = st.text_input("Ingrese la consulta de búsqueda:")
 
-# Campo de entrada para el nombre del archivo
-filename = st.text_input("Ingrese el nombre del archivo (sin extensión):")
-
-# Botón para ejecutar la búsqueda y guardar resultados
-if st.button("Buscar y Guardar"):
-    if not query or not filename:
-        st.warning("Por favor complete ambos campos.")
+# Botón para ejecutar la búsqueda y descargar resultados
+if st.button("Buscar y Descargar"):
+    if not query:
+        st.warning("Por favor complete el campo de búsqueda.")
     else:
-        result_message = search_and_save(query, f"{filename}.xlsx")
-        st.success(result_message) if "guardados" in result_message else st.error(result_message)
+        result = search_and_save(query)
+        if isinstance(result, BytesIO):
+            st.success("Búsqueda completada. Descargue el archivo a continuación.")
+            st.download_button(
+                label="Descargar resultados",
+                data=result,
+                file_name="resultados_scholar.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+        else:
+            st.error(f"Ocurrió un error: {result}")
+
