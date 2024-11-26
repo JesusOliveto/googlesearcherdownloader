@@ -7,7 +7,7 @@ from io import BytesIO
 # Configurar fallback para evitar el error de lista vacía
 ua = UserAgent(fallback="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
 
-def search_and_save(query):
+def search_and_save(query, max_results):
     # Crear y configurar el libro de Excel
     wb = openpyxl.Workbook()
     ws = wb.active
@@ -17,7 +17,7 @@ def search_and_save(query):
     try:
         search_query = scholarly.search_pubs(query)
         for i, article in enumerate(search_query):
-            if i >= 100:  # Limitar el número de resultados
+            if i >= max_results:  # Limitar el número de resultados
                 break
 
             # Extraer los datos del campo 'bib' y 'eprint_url'
@@ -46,12 +46,15 @@ st.title("Buscador de Google Scholar")
 # Campo de entrada para la consulta de búsqueda
 query = st.text_input("Ingrese la consulta de búsqueda:")
 
+# Campo de entrada para la cantidad de resultados
+max_results = st.number_input("Cantidad de resultados a guardar:", min_value=1, max_value=100, value=10, step=1)
+
 # Botón para ejecutar la búsqueda y descargar resultados
 if st.button("Buscar y Descargar"):
     if not query:
         st.warning("Por favor complete el campo de búsqueda.")
     else:
-        result = search_and_save(query)
+        result = search_and_save(query, max_results)
         if isinstance(result, BytesIO):
             st.success("Búsqueda completada. Descargue el archivo a continuación.")
             st.download_button(
@@ -62,4 +65,5 @@ if st.button("Buscar y Descargar"):
             )
         else:
             st.error(f"Ocurrió un error: {result}")
+
 
