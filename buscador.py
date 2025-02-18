@@ -11,7 +11,7 @@ def search_and_save(query, max_results):
     # Crear y configurar el libro de Excel
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.append(['Título', 'Autores', 'Año', 'Revista', 'Enlace ePrint'])
+    ws.append(['Título', 'Autores', 'Año', 'Revista', 'Enlace ePrint', 'Citas'])  # Se agregó la columna 'Citas'
 
     # Realizar la búsqueda y extraer los resultados
     try:
@@ -20,16 +20,17 @@ def search_and_save(query, max_results):
             if i >= max_results:  # Limitar el número de resultados
                 break
 
-            # Extraer los datos del campo 'bib' y 'eprint_url'
+            # Extraer los datos del campo 'bib' y otros campos relevantes
             bib_data = article.get('bib', {})
             title = bib_data.get('title', 'N/A')
             authors = ", ".join(bib_data.get('author', []))
             year = bib_data.get('pub_year', 'N/A')
             journal = bib_data.get('venue', 'N/A')
             eprint_url = article.get('eprint_url', 'N/A')
+            citations = article.get('num_citations', 0)  # Extraer el número de citas (0 si no hay info)
 
             # Agregar la información en la hoja de Excel
-            ws.append([title, authors, year, journal, eprint_url])
+            ws.append([title, authors, year, journal, eprint_url, citations])
 
         # Guardar el archivo Excel en memoria
         output = BytesIO()
@@ -65,5 +66,3 @@ if st.button("Buscar y Descargar"):
             )
         else:
             st.error(f"Ocurrió un error: {result}")
-
-
